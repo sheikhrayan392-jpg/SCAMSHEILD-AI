@@ -1,0 +1,89 @@
+[
+  {
+    "id": "SCAM-001",
+    "category": "Digital Arrest & Police Extortion",
+    "description": "Simulated caller impersonates Delhi Police Crime Branch claiming an arrest warrant for money laundering.",
+    "expected_risk_level": "HIGH",
+    "message": "This is Officer Sharma from Delhi Police Crime Branch. A digital arrest warrant has been issued against your name for an illegal parcel and money laundering. Transfer Rs 50,000 immediately to the clearance account to unfreeze your identity, or police officers will be dispatched within 30 minutes. Do not disconnect the call.",
+    "expected_indicators": [
+      "Authority & Law Enforcement Impersonation",
+      "Arrest, Custody & Criminal Prosecution Threats",
+      "Urgent Financial Demands & Transfers",
+      "Panic, Artificial Urgency & Isolation Tactics"
+    ]
+  },
+  {
+    "id": "SCAM-002",
+    "category": "CBI Narcotics & Video Interrogation",
+    "description": "Simulated caller claims contraband seized in courier and demands continuous video interrogation.",
+    "expected_risk_level": "HIGH",
+    "message": "This is Inspector Vikram from CBI Headquarters. A parcel containing MDMA drugs and fake passports was seized under your Aadhaar number. You are placed under digital arrest. Stay on video call, keep your camera turned on, and deposit Rs 75,000 to RBI clearing UPI ID: police.clearance@sbi right now.",
+    "expected_indicators": [
+      "Authority & Law Enforcement Impersonation",
+      "Arrest, Custody & Criminal Prosecution Threats",
+      "Urgent Financial Demands & Transfers",
+      "Panic, Artificial Urgency & Isolation Tactics"
+    ]
+  },
+  {
+    "id": "SCAM-003",
+    "category": "Banking KYC Phishing",
+    "description": "High-urgency bank account suspension notification demanding credentials and OTP.",
+    "expected_risk_level": "HIGH",
+    "message": "URGENT: Your SBI bank account will be blocked within 2 hours due to expired KYC verification. Share your OTP and NetBanking password immediately to avoid permanent deactivation.",
+    "expected_indicators": [
+      "Credential & Sensitive Data Harvesting",
+      "Panic, Artificial Urgency & Isolation Tactics"
+    ]
+  },
+  {
+    "id": "SCAM-004",
+    "category": "TRAI Telecom Disconnection Scam",
+    "description": "Impersonates telecom regulatory authority threatening immediate SIM blockage.",
+    "expected_risk_level": "MEDIUM",
+    "message": "This is an automated alert from TRAI Telecom Regulatory Authority. Your mobile number is associated with illegal harassment complaints and will be disconnected within 2 hours. Press 9 to speak with an officer.",
+    "expected_indicators": [
+      "Authority & Law Enforcement Impersonation",
+      "Panic, Artificial Urgency & Isolation Tactics"
+    ]
+  },
+  {
+    "id": "SCAM-005",
+    "category": "Customs Parcel Fine Extortion",
+    "description": "Customs officer demand for clearance penalty fee via bank transfer.",
+    "expected_risk_level": "HIGH",
+    "message": "Customs Department notice: An international consignment addressed to you has been detained at Mumbai airport. Pay the clearance penalty fee of Rs 25,000 via IMPS immediately to avoid customs seizure and arrest warrant.",
+    "expected_indicators": [
+      "Authority & Law Enforcement Impersonation",
+      "Arrest, Custody & Criminal Prosecution Threats",
+      "Urgent Financial Demands & Transfers",
+      "Panic, Artificial Urgency & Isolation Tactics"
+    ]
+  },
+  {
+    "id": "BENIGN-001",
+    "category": "Benign Friendly Message",
+    "description": "Casual personal coordination between colleagues or friends.",
+    "expected_risk_level": "LOW",
+    "message": "Hey! Are we still meeting for lunch at 1 PM today? Let me know if you want to grab coffee afterwards.",
+    "expected_indicators": []
+  },
+  {
+    "id": "BENIGN-002",
+    "category": "Casual Authority Mention (False-Positive Test)",
+    "description": "Harmless observation mentioning police; tests that isolated keywords do not trigger false alarms.",
+    "expected_risk_level": "LOW",
+    "message": "I was driving home on the highway and noticed the local police conducting regular traffic checks near the shopping mall.",
+    "expected_indicators": [
+      "Authority & Law Enforcement Impersonation"
+    ]
+  },
+  {
+    "id": "BENIGN-003",
+    "category": "Legitimate Bank Informational SMS",
+    "description": "Standard transactional notification that does not solicit credentials or instill panic.",
+    "expected_risk_level": "LOW",
+    "message": "Your account has been credited with INR 5,000.00 on 31-Oct-2026. Avail balance: INR 45,210.00. - State Bank of India.",
+    "expected_indicators": []
+  }
+]
