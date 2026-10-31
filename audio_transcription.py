@@ -31,7 +31,7 @@ SUPPORTED_EXTENSIONS = {".wav", ".mp3"}
 # Configurable offline Whisper model hierarchy:
 # Defaults to 'base' for superior Hindi & English recognition without excessive memory overhead.
 # Can be overridden via SCAMSHIELD_WHISPER_MODEL or WHISPER_MODEL environment variables.
-DEFAULT_WHISPER_MODEL = os.getenv("SCAMSHIELD_WHISPER_MODEL", os.getenv("WHISPER_MODEL", "base"))
+DEFAULT_WHISPER_MODEL = os.getenv("SCAMSHIELD_WHISPER_MODEL", os.getenv("WHISPER_MODEL", "small"))
 DEFAULT_WHISPER_DEVICE = os.getenv("SCAMSHIELD_WHISPER_DEVICE", "auto")
 AVAILABLE_WHISPER_MODELS = ("tiny", "base", "small")
 
@@ -67,21 +67,13 @@ def normalize_language_code(language: Optional[str]) -> Optional[str]:
 
 def build_domain_initial_prompt(norm_language: Optional[str]) -> str:
     """
-    Constructs a domain-specific vocabulary prompt to prime Whisper's language model prior.
-    Significantly minimizes phonetic hallucinations on Indian scam terminology, authority
-    impersonations, and currency units in both English and Hindi.
+    Constructs a balanced vocabulary prompt to prime Whisper's language model prior.
+    Guides correct spelling and script tokenization for conversational phrases as well as
+    common authorities and institutions, without forcing synthetic sentences.
     """
     if norm_language == "hi":
-        return (
-            "यह कॉल दिल्ली पुलिस, क्राइम ब्रांच, सीबीआई, साइबर सेल, डिजिटल अरेस्ट, अरेस्ट वारंट, "
-            "कस्टम्स डिपार्टमेंट, अवैध पार्सल, बैंक खाता, केवाईसी वेरिफिकेशन, ओटीपी, एटीएम पिन, "
-            "पचास हजार रुपये, यूपीआई आईडी, और तुरंत ट्रांसफर के संबंध में है।"
-        )
-    return (
-        "This recorded phone call concerns Delhi Police Crime Branch, CBI, cyber cell, "
-        "digital arrest warrant, Customs contraband parcel, bank KYC account freeze, "
-        "OTP, ATM PIN, UPI handle, Rs 50,000 rupees clearance, and urgent fund transfer demands."
-    )
+        return "नमस्ते, कैसे हो? क्या हाल है? दिल्ली पुलिस, सीबीआई, साइबर सेल, डिजिटल अरेस्ट, वारंट, बैंक, ओटीपी, आधार, कॉलेज, जरूरी सूचना।"
+    return "Hello, how are you? Delhi Police Crime Branch, CBI, cyber cell, digital arrest, warrant, bank KYC, OTP, clearance."
 
 
 def inspect_audio_signal(file_bytes: bytes, filename: str) -> Dict[str, Any]:
@@ -1054,15 +1046,16 @@ class FasterWhisperTranscriptionBackend(BaseTranscriptionBackend):
                 audio_stream,
                 language=norm_lang,
                 task="transcribe",
-                beam_size=5,
-                best_of=5,
+                beam_size=1,
+                best_of=1,
+                temperature=0.0,
                 condition_on_previous_text=False,  # CRITICAL: stops repetitive hallucination chains
                 vad_filter=True,                   # CRITICAL: strips silence and line noise
                 vad_parameters=dict(min_silence_duration_ms=500),
-                no_speech_threshold=0.6,
+                no_speech_threshold=0.7,
                 compression_ratio_threshold=2.4,
                 log_prob_threshold=-1.0,
-                initial_prompt=prompt,             # Primes vocabulary with cybercrime terms
+                initial_prompt=prompt,
             )
 
             text_chunks = []

@@ -47,6 +47,7 @@ from safety import (
 from audio_transcription import (
     validate_audio_file,
     extract_audio_metadata,
+    inspect_audio_signal,
     create_synthetic_wav,
     AudioTranscriber,
     FasterWhisperTranscriptionBackend,
