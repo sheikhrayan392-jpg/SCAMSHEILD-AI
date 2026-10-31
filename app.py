@@ -884,22 +884,26 @@ def run_dashboard():
             selected_language_label = st.selectbox(
                 "🌐 Spoken Audio Language Mode:",
                 options=[
+                    "🇮🇳 Hindi (हिन्दी / Devanagari Script - Recommended for Hindi/Hinglish)",
                     "🌐 Auto-Detect Language (Default)",
-                    "🇮🇳 Hindi (हिन्दी / Devanagari Script)",
                     "🇬🇧 English (Indian & Global Accents)",
                 ],
                 index=0,
                 help=(
-                    "Select expected primary language. Hindi ('hi') forces Devanagari output for Hindi and Hinglish. "
-                    "English ('en') transcribes English words. Auto-detect attempts automatic recognition."
+                    "CRITICAL FOR HINDI/HINGLISH: Select 'Hindi' when transcribing Hindi or Hinglish phone calls. "
+                    "Whisper's language head will decode into proper Devanagari script ('नमस्ते भाई...') and avoid "
+                    "inaccurate Latin phoneme hallucination. Auto-detect attempts automatic recognition. "
+                    "English transcribes English speech."
                 ),
             )
         lang_code_map = {
+            "🇮🇳 Hindi (हिन्दी / Devanagari Script - Recommended for Hindi/Hinglish)": "hi",
             "🌐 Auto-Detect Language (Default)": "auto",
+            "🌐 Auto-Detect Language": "auto",
             "🇮🇳 Hindi (हिन्दी / Devanagari Script)": "hi",
             "🇬🇧 English (Indian & Global Accents)": "en",
         }
-        selected_lang_code = lang_code_map.get(selected_language_label, "auto")
+        selected_lang_code = lang_code_map.get(selected_language_label, "hi")
 
         with col_btn:
             st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
@@ -907,7 +911,8 @@ def run_dashboard():
 
         st.caption(
             "💡 **Multilingual & Hinglish Guidance**: Whisper maps speech to specific scripts. "
-            "For bilingual or Hinglish calls, choose **Hindi** for Devanagari script output or **English** for Latin script. "
+            "For Hindi or mixed Hinglish calls, always choose **Hindi** for coherent Devanagari script output. "
+            "Auto-detect may default to English or Hungarian tokenization on Indian accents. "
             "Always inspect and edit the generated transcript in the review box below before running risk scoring."
         )
 
@@ -954,6 +959,73 @@ def run_dashboard():
                         end_fmt = f"{seg.get('end', 0.0):.2f}s"
                         seg_text = seg.get("text", "").strip()
                         st.markdown(f"**[{start_fmt} - {end_fmt}]** {seg_text}")
+
+        # Temporary Acoustic Diagnostic & Debug Inspector (Requirement 6)
+        if st.session_state.recorded_call_bytes:
+            with st.expander("🛠️ Acoustic Diagnostic & Debug Inspector (Acoustics, Whisper Engine & Segments)", expanded=False):
+                st.markdown("##### 🔬 Audio Signal & Speech Recognition Debug Diagnostics")
+                dbg_meta = st.session_state.recorded_call_metadata or extract_audio_metadata(
+                    st.session_state.recorded_call_bytes,
+                    st.session_state.recorded_call_filename or "audio.wav",
+                )
+                dbg_sig = inspect_audio_signal(
+                    st.session_state.recorded_call_bytes,
+                    st.session_state.recorded_call_filename or "audio.wav",
+                )
+                dbg_stt = st.session_state.recorded_call_stt_result or {}
+
+                # Row 1: Audio Signal Metrics
+                st.markdown("###### 🔊 Acoustic File Properties:")
+                col_d1, col_d2, col_d3, col_d4 = st.columns(4)
+                with col_d1:
+                    dur_val = dbg_meta.get("duration_seconds") or dbg_sig.get("duration_seconds", 0.0)
+                    st.metric("Audio Duration", f"{dur_val:.2f}s ({dbg_meta.get('duration_formatted', '00:00')})")
+                with col_d2:
+                    st.metric("Sample Rate", f"{dbg_meta.get('sample_rate_hz', 0):,} Hz")
+                with col_d3:
+                    ch_cnt = dbg_meta.get("channels", 1)
+                    ch_desc = "Stereo" if ch_cnt == 2 else "Mono"
+                    st.metric("Channel Count", f"{ch_cnt} ({ch_desc})")
+                with col_d4:
+                    st.metric("Container Format", dbg_meta.get("format", "WAV"))
+
+                # Row 2: Signal Amplitude & Engine State
+                st.markdown("###### 🧠 Whisper Neural Model & Decoder Diagnostics:")
+                col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+                active_model = dbg_stt.get("model_name") or getattr(transcriber_engine.backend, "model_size", "small")
+                det_lang = dbg_stt.get("language_detected")
+                lang_prob = dbg_stt.get("language_probability")
+                if det_lang and det_lang != "unknown":
+                    det_lang_str = f"{det_lang.upper()} ({lang_prob * 100:.1f}%)" if lang_prob is not None else det_lang.upper()
+                else:
+                    det_lang_str = "Not Run / Unknown"
+
+                with col_m1:
+                    st.metric("Whisper Model", f"faster-whisper-{active_model}")
+                with col_m2:
+                    st.metric("Detected Language", det_lang_str)
+                with col_m3:
+                    st.metric("RMS Amplitude", f"{dbg_sig.get('rms_amplitude', 0.0):.4f}")
+                with col_m4:
+                    st.metric("Peak Amplitude", f"{dbg_sig.get('peak_amplitude', 0.0):.4f}")
+
+                # Transcription Segments Table
+                dbg_segments = dbg_stt.get("segments", [])
+                st.markdown("###### ⏱️ Transcription Segments Breakdown:")
+                if dbg_segments:
+                    seg_records = []
+                    for s in dbg_segments:
+                        seg_records.append({
+                            "Segment #": s.get("id", 0) + 1 if isinstance(s.get("id"), int) else len(seg_records) + 1,
+                            "Start (s)": f"{s.get('start', 0.0):.2f}",
+                            "End (s)": f"{s.get('end', 0.0):.2f}",
+                            "Transcribed Text": s.get("text", "").strip(),
+                            "Avg LogProb": s.get("avg_logprob", "N/A"),
+                            "No-Speech Prob": s.get("no_speech_prob", "N/A"),
+                        })
+                    st.dataframe(seg_records, use_container_width=True)
+                else:
+                    st.caption("ℹ️ No transcription segments recorded yet. Run Speech-to-Text above to populate segment telemetry.")
 
         # Human-in-the-loop review text area
         transcript_input = st.text_area(

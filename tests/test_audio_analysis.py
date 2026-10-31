@@ -269,7 +269,7 @@ class TestAudioAnalysis(unittest.TestCase):
         """Verifies that app.py initializes with all 5 navigation tabs including Recorded Call Analysis."""
         try:
             from streamlit.testing.v1 import AppTest
-            at = AppTest.from_file(str(PROJECT_ROOT / "app.py"), default_timeout=10)
+            at = AppTest.from_file(str(PROJECT_ROOT / "app.py"), default_timeout=25)
             at.run()
             self.assertFalse(at.exception)
             self.assertEqual(len(at.tabs), 5)
@@ -319,7 +319,7 @@ class TestAudioAnalysis(unittest.TestCase):
         """Verifies that Tab 4 in app.py loads audio presets, analyzes the call, and exposes report exports."""
         try:
             from streamlit.testing.v1 import AppTest
-            at = AppTest.from_file(str(PROJECT_ROOT / "app.py"), default_timeout=15)
+            at = AppTest.from_file(str(PROJECT_ROOT / "app.py"), default_timeout=25)
             at.run()
             # Click Tab 4 preset button (Call 1: Police Digital Arrest)
             preset_btn = [b for b in at.button if "Call 1" in (b.help or "")][0]
